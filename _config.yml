@@ -1,5 +1,5 @@
 # SITE CONFIGURATION
-baseurl: ""
+baseurl: "/Ethereum-Development-Tutorial"
 url: "https://cau-clink.github.io/Ethereum-Development-Tutorial/"
 
 # THEME-SPECIFIC CONFIGURATION
