@@ -3,7 +3,7 @@
   <head>
 	<meta charset="utf-8">
 	<title>Post1 | Ethereum Development Tutorial</title>
-	<meta name="description" content="Post1 준비중입니다.">
+	<meta name="description" content="Assignment 07">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<!-- CSS -->
@@ -152,7 +152,473 @@
       
     </p>
   </header>
-  <section class="post-content"><p>Post1 준비중입니다.</p>
+  <section class="post-content"><h1 id="assignment-07">Assignment 07</h1>
+<hr />
+
+<h1 id="과제-정의">과제 정의</h1>
+<hr />
+
+<p>[Apply K-means algorithm to both image value and its spatial domain]</p>
+
+<p>For a given input image (either gray or color), apply a K-means algorithm that is designed to take into consideration of both the image intensity and its spatial domain with varying parameters: the number of clusters and the trade-off between the intensity energy and the spatial energy.</p>
+
+<p>The objective function is given by:</p>
+
+<script type="math/tex; mode=display">\sum_k \sum_\{ x \in I(k) \} [ \| f(x) - m_k \|^2 + a * \| x - c_k \|^2 ]</script>
+
+<p>where I(k) denotes the index set of x that belongs to cluster k, m_k denotes the centroid of image intensity for cluster k, c_k denotes the centroid of spatial location for cluster k, and a determines the importance between the image intensity and the spatial relation.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>- Visualize the clustering results with varying k and a using the centroid color m_k for each cluster k. 
+
+- Visualize the energy curve for both the intensity energy and the spatial energy.
+</code></pre></div></div>
+
+<hr />
+<h3 id="모듈-정의">모듈 정의</h3>
+
+<h4 id="그래프를-그리기-위해-python3-matplotlib-module-을-사용합니다">그래프를 그리기 위해 Python3 matplotlib module 을 사용합니다</h4>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="1-기본-데이터-입력받기">1. 기본 데이터 입력받기</h2>
+
+<p>아래의 이미지로 진행합니다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">IPython.display</span> 
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">'test.jpg'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_9_0.jpeg" alt="jpeg" /></p>
+
+<h2 id="2-필요-함수-선언">2. 필요 함수 선언</h2>
+
+<hr />
+<h4 id="init-함수">init 함수</h4>
+<ul>
+  <li>label이 들어갈 matrix(이미지 크기)에 label값을 넣습니다.</li>
+  <li>x1,x2(위치좌표), rgb, label이 들어갈 matrix를 만듭니다.</li>
+  <li>총 3개의 matrix를 구성하여 반환합니다.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span><span class="n">cols</span><span class="p">,</span><span class="n">K</span><span class="p">,</span><span class="n">pix</span><span class="p">):</span>
+    <span class="n">label_matrix</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">cols</span><span class="p">)]</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">rows</span><span class="p">)]</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">rows</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">cols</span><span class="p">):</span>
+            <span class="n">rgb</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ti</span><span class="o">/</span><span class="mi">255</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">pix</span><span class="p">[</span><span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="p">])</span>
+            <span class="n">label_matrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">K</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span><span class="n">rgb</span><span class="p">,[</span><span class="n">row</span><span class="o">/</span><span class="p">(</span><span class="n">rows</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="n">col</span><span class="o">/</span><span class="p">(</span><span class="n">cols</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
+            <span class="c1">#label_matrix[row][col] = (random.randrange(1,K+1),pix[row,col])
+</span>            <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span> <span class="o">*</span> <span class="n">cols</span><span class="p">)</span> <span class="o">+</span> <span class="n">col</span>
+            <span class="n">x1</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span>
+            <span class="n">x2</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span>
+    <span class="k">return</span> <span class="n">label_matrix</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span>
+</code></pre></div></div>
+
+<h4 id="get_locate_by_label-함수">get_locate_by_label 함수</h4>
+<ul>
+  <li>배정받은 클러스터의 label 별로 데이터를 모읍니다.</li>
+  <li>결과적으로 반환 값은 label별로 모여 있는 5차원의 데이터를 받습니다.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span><span class="n">cols</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">):</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x1</span><span class="p">)):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">x1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">x2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">label_matrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dic</span><span class="p">:</span>
+            <span class="n">dic</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">dic</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dic</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+
+    <span class="k">return</span> <span class="n">dic</span>
+</code></pre></div></div>
+
+<h4 id="centroid_select-함수">centroid_select 함수</h4>
+<ul>
+  <li>get_locate_rgb_by_label에서 받은 label별로 모여있는 정보들의 centroid를 만드는 작업을 합니다.</li>
+  <li>각 label 별로 저장되어있는 모든 정보의 합을 각 label 별로 저장되어있는 모든 데이터의 수로 나눕니다. (중심값을 얻습니다.)</li>
+  <li>결과적으로 centroid_rgb, centroid_locate에 각 클러스터 별 위치, rgb의 centroid의 값을 저장하게 됩니다.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">):</span>
+    <span class="n">centroid_rgb</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">centroid_locate</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dic</span><span class="p">:</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">locate</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dic</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">rgb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">locate</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">rgb</span><span class="p">))</span>
+        <span class="n">centroid_rgb</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rgb</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+        <span class="n">centroid_locate</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">locate</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">locate</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span>
+</code></pre></div></div>
+
+<h4 id="cluster-함수">cluster 함수</h4>
+<ul>
+  <li>각 클러스터의 centroid_rgb, centroid_locate와의 거리를 구하여 가장 거리가 짧은 거리의 label을 따라갑니다.</li>
+  <li>$$dist = ((r - C_r)^2 + (g - C_g)^2 + (b - C_b)^2) + Lambda*((x - C_x)^2 + (y - C_y)^2)$ $</li>
+  <li>위의 식으로 거리를 구하고 각 클러스터의 거리 중 짧은 거리의 클러스터 label을 따라갑니다.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">cluster</span><span class="p">(</span><span class="n">label_matrix</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">rgb</span><span class="p">,</span><span class="n">locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x1</span><span class="p">)):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">x1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">x2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">minDist</span> <span class="o">=</span> <span class="mi">99999999</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="mi">99999999</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">label_matrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span>
+            <span class="n">locate_dist</span> <span class="o">=</span> <span class="n">Lambda</span> <span class="o">*</span> <span class="p">(</span><span class="nb">pow</span><span class="p">((</span><span class="n">locate</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">((</span><span class="n">locate</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">rgb_dist</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">((</span><span class="n">rgb</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">((</span><span class="n">rgb</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">((</span><span class="n">rgb</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">locate_dist</span> <span class="o">+</span> <span class="n">rgb_dist</span>
+            <span class="k">if</span> <span class="n">minDist</span> <span class="o">&gt;</span> <span class="n">dist</span><span class="p">:</span>
+                <span class="n">minDist</span> <span class="o">=</span> <span class="n">dist</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">label_matrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">label</span>
+
+
+    <span class="k">return</span> <span class="n">label_matrix</span>
+
+</code></pre></div></div>
+
+<h4 id="get_energyfunction_val-함수와-show_energyfunction-함수">get_energyfunction_val 함수와 show_energyfunction 함수</h4>
+<ul>
+  <li>energy function의 값을 구하는 함수입니다.</li>
+</ul>
+
+<p><script type="math/tex">\sum_k \sum _{x \in I(k)} [\  | f (x) - m_k \ | ^ 2 + a * \ | X - C_K \ | ^ 2]</script>
+I (K)는 K 개의 클러스터에 속한 X의 세트의 인덱스를 나타내고, $m_k$ 클러스터 k에 대한 이미지 데이터의 중심을 나타내고, $C_K$ 클러스터 k에 대한 공간 위치의 중심 및 여부를 확인 나타낸다 이미지 강도와 공간적 관계 사이의 중요성.</p>
+
+<p>위 연산을 구현한 것으로 energy를 구합니다.</p>
+
+<ul>
+  <li>show_energyfunction는 get_energyfunction_val에서 받은 energy의 값을 가지고 plot을 해주는 함수입니다.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_energyfunction_val</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="n">rgb</span><span class="p">,</span><span class="n">locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">,</span><span class="n">K</span><span class="p">):</span> 
+    <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dic</span><span class="p">:</span>
+        <span class="n">i_locate_dist</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">i_rgb_dist</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dic</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">_rgb</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">_locate</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">locate_dist</span> <span class="o">=</span> <span class="n">Lambda</span> <span class="o">*</span> <span class="p">(</span><span class="nb">pow</span><span class="p">((</span><span class="n">locate</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">_locate</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">((</span><span class="n">locate</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">_locate</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">rgb_dist</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">((</span><span class="n">rgb</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">_rgb</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">((</span><span class="n">rgb</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">_rgb</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">((</span><span class="n">rgb</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">_rgb</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">i_locate_dist</span> <span class="o">=</span> <span class="n">i_locate_dist</span> <span class="o">+</span> <span class="n">locate_dist</span>
+            <span class="n">i_rgb_dist</span> <span class="o">=</span> <span class="n">i_rgb_dist</span> <span class="o">+</span> <span class="n">rgb_dist</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">i_locate_dist</span> <span class="o">+</span> <span class="n">i_rgb_dist</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">+</span> <span class="n">dist</span>
+    <span class="k">return</span> <span class="n">val</span> <span class="o">/</span> <span class="n">K</span>
+
+<span class="k">def</span> <span class="nf">show_energyfunction</span><span class="p">(</span><span class="nb">iter</span><span class="p">,</span><span class="n">energy</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">"iterator"</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">"energy"</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">iter</span><span class="p">),</span> <span class="n">energy</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<h2 id="3-테스트energy-함수와-결과-이미지-비교---k가-5일때">3. 테스트(Energy 함수와 결과 이미지 비교) - K가 5일때</h2>
+
+<hr />
+<h3 id="k5--iterator--10--lambda--0">K=5 // iterator = 10 // Lambda = 0</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'test.jpg'</span><span class="p">)</span> <span class="c1"># Can be many different formats.
+</span><span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">Lambda</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">label_matrix</span> <span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">init</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">K</span><span class="p">,</span><span class="n">pix</span><span class="p">)</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">centroid_locate</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span> <span class="p">])))</span> <span class="o">==</span> <span class="n">K</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">iterator</span><span class="p">):</span>
+    <span class="n">label_matrix</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">(</span><span class="n">label_matrix</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">)</span>
+    <span class="n">energy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_energyfunction_val</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">,</span><span class="n">K</span><span class="p">))</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+
+
+<span class="n">show_energyfunction</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span><span class="n">energy</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="n">centroid_rgb</span><span class="p">[</span><span class="n">label_matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ti</span> <span class="o">*</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">pixel</span><span class="p">)</span>
+        <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+    
+<span class="kn">import</span> <span class="nn">IPython.display</span> 
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_23_0.png" alt="png" /></p>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_23_1.png" alt="png" /></p>
+
+<hr />
+<h3 id="k5--iterator--10--lambda--2">K=5 // iterator = 10 // Lambda = 2</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'test.jpg'</span><span class="p">)</span> <span class="c1"># Can be many different formats.
+</span><span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">Lambda</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">label_matrix</span> <span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">init</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">K</span><span class="p">,</span><span class="n">pix</span><span class="p">)</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">centroid_locate</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span> <span class="p">])))</span> <span class="o">==</span> <span class="n">K</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">iterator</span><span class="p">):</span>
+    <span class="n">label_matrix</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">(</span><span class="n">label_matrix</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">)</span>
+    <span class="n">energy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_energyfunction_val</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">,</span><span class="n">K</span><span class="p">))</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+
+
+<span class="n">show_energyfunction</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span><span class="n">energy</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="n">centroid_rgb</span><span class="p">[</span><span class="n">label_matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ti</span> <span class="o">*</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">pixel</span><span class="p">)</span>
+        <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+    
+<span class="kn">import</span> <span class="nn">IPython.display</span> 
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_25_0.png" alt="png" /></p>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_25_1.png" alt="png" /></p>
+
+<hr />
+<h3 id="k5--iterator--10--lambda--4">K=5 // iterator = 10 // Lambda = 4</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'test.jpg'</span><span class="p">)</span> <span class="c1"># Can be many different formats.
+</span><span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">Lambda</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">label_matrix</span> <span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">init</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">K</span><span class="p">,</span><span class="n">pix</span><span class="p">)</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">centroid_locate</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span> <span class="p">])))</span> <span class="o">==</span> <span class="n">K</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">iterator</span><span class="p">):</span>
+    <span class="n">label_matrix</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">(</span><span class="n">label_matrix</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">)</span>
+    <span class="n">energy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_energyfunction_val</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">,</span><span class="n">K</span><span class="p">))</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+
+
+<span class="n">show_energyfunction</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span><span class="n">energy</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="n">centroid_rgb</span><span class="p">[</span><span class="n">label_matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ti</span> <span class="o">*</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">pixel</span><span class="p">)</span>
+        <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+    
+<span class="kn">import</span> <span class="nn">IPython.display</span> 
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_27_0.png" alt="png" /></p>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_27_1.png" alt="png" /></p>
+
+<hr />
+<h3 id="k5--iterator--10--lambda--8">K=5 // iterator = 10 // Lambda = 8</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'test.jpg'</span><span class="p">)</span> <span class="c1"># Can be many different formats.
+</span><span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">Lambda</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">label_matrix</span> <span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">init</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">K</span><span class="p">,</span><span class="n">pix</span><span class="p">)</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">centroid_locate</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span> <span class="p">])))</span> <span class="o">==</span> <span class="n">K</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">iterator</span><span class="p">):</span>
+    <span class="n">label_matrix</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">(</span><span class="n">label_matrix</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">)</span>
+    <span class="n">energy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_energyfunction_val</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">,</span><span class="n">K</span><span class="p">))</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+
+
+<span class="n">show_energyfunction</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span><span class="n">energy</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="n">centroid_rgb</span><span class="p">[</span><span class="n">label_matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ti</span> <span class="o">*</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">pixel</span><span class="p">)</span>
+        <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+    
+<span class="kn">import</span> <span class="nn">IPython.display</span> 
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_29_0.png" alt="png" /></p>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_29_1.png" alt="png" /></p>
+
+<h2 id="3-테스트energy-함수와-결과-이미지-비교---k가-10일때">3. 테스트(Energy 함수와 결과 이미지 비교) - K가 10일때</h2>
+
+<hr />
+<h3 id="k10--iterator--10--lambda--0">K=10 // iterator = 10 // Lambda = 0</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'test.jpg'</span><span class="p">)</span> <span class="c1"># Can be many different formats.
+</span><span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">Lambda</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">label_matrix</span> <span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">init</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">K</span><span class="p">,</span><span class="n">pix</span><span class="p">)</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">centroid_locate</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span> <span class="p">])))</span> <span class="o">==</span> <span class="n">K</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">iterator</span><span class="p">):</span>
+    <span class="n">label_matrix</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">(</span><span class="n">label_matrix</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">)</span>
+    <span class="n">energy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_energyfunction_val</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">,</span><span class="n">K</span><span class="p">))</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+
+
+<span class="n">show_energyfunction</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span><span class="n">energy</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="n">centroid_rgb</span><span class="p">[</span><span class="n">label_matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ti</span> <span class="o">*</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">pixel</span><span class="p">)</span>
+        <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+    
+<span class="kn">import</span> <span class="nn">IPython.display</span> 
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_32_0.png" alt="png" /></p>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_32_1.png" alt="png" /></p>
+
+<hr />
+<h3 id="k10--iterator--10--lambda--4">K=10 // iterator = 10 // Lambda = 4</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'test.jpg'</span><span class="p">)</span> <span class="c1"># Can be many different formats.
+</span><span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">Lambda</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">label_matrix</span> <span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">init</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">K</span><span class="p">,</span><span class="n">pix</span><span class="p">)</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">centroid_locate</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span> <span class="p">])))</span> <span class="o">==</span> <span class="n">K</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">iterator</span><span class="p">):</span>
+    <span class="n">label_matrix</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">(</span><span class="n">label_matrix</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">)</span>
+    <span class="n">energy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_energyfunction_val</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">,</span><span class="n">K</span><span class="p">))</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+
+
+<span class="n">show_energyfunction</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span><span class="n">energy</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="n">centroid_rgb</span><span class="p">[</span><span class="n">label_matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ti</span> <span class="o">*</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">pixel</span><span class="p">)</span>
+        <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+    
+<span class="kn">import</span> <span class="nn">IPython.display</span> 
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_34_0.png" alt="png" /></p>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_34_1.png" alt="png" /></p>
+
+<hr />
+<h3 id="k10--iterator--10--lambda--9">K=10 // iterator = 10 // Lambda = 9</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">'test.jpg'</span><span class="p">)</span> <span class="c1"># Can be many different formats.
+</span><span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">K</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">Lambda</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">iterator</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">label_matrix</span> <span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">init</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">K</span><span class="p">,</span><span class="n">pix</span><span class="p">)</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">centroid_locate</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span> <span class="p">])))</span> <span class="o">==</span> <span class="n">K</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">iterator</span><span class="p">):</span>
+    <span class="n">label_matrix</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">(</span><span class="n">label_matrix</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">)</span>
+    <span class="n">energy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_energyfunction_val</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span><span class="n">centroid_rgb</span><span class="p">,</span><span class="n">centroid_locate</span><span class="p">,</span><span class="n">Lambda</span><span class="p">,</span><span class="n">K</span><span class="p">))</span>
+    <span class="n">dic</span> <span class="o">=</span> <span class="n">get_locate_rgb_by_label</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">label_matrix</span><span class="p">)</span>
+    <span class="n">centroid_rgb</span><span class="p">,</span> <span class="n">centroid_locate</span> <span class="o">=</span> <span class="n">centroid_select</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+
+
+<span class="n">show_energyfunction</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span><span class="n">energy</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="n">centroid_rgb</span><span class="p">[</span><span class="n">label_matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">pixel</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ti</span> <span class="o">*</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">pixel</span><span class="p">)</span>
+        <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">pixel</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+    
+<span class="kn">import</span> <span class="nn">IPython.display</span> 
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="o">+</span> <span class="s">"_result.png"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_36_0.png" alt="png" /></p>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/post1/output_36_1.png" alt="png" /></p>
 </section>
   
 
