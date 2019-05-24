@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Type Theme</title>
+    <title>Ethereum Development Tutorial</title>
     <atom:link href="/Ethereum-Development-Tutorial/feed.xml" rel="self" type="application/rss+xml"/>
     <link>http://localhost:4000/Ethereum-Development-Tutorial/</link>
-    <description>A website with blog posts and pages</description>
-    <pubDate>Sat, 25 May 2019 00:16:01 +0900</pubDate>
+    <description>by koo</description>
+    <pubDate>Sat, 25 May 2019 00:33:30 +0900</pubDate>
     
       <item>
         <title>Sample post</title>

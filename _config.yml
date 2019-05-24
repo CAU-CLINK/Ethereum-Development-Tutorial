@@ -5,20 +5,20 @@ url: "https://cau-clink.github.io/Ethereum-Development-Tutorial/"
 # THEME-SPECIFIC CONFIGURATION
 theme_settings:
   # Meta
-  title: Type Theme
-  avatar: assets/img/avatar.png
+  title: Ethereum Development Tutorial
+  avatar: assets/img/icon.jpg
   favicon: assets/favicon.ico
   gravatar: # Email MD5 hash
-  description: "A website with blog posts and pages" # used by search engines
+  description: "by koo" # used by search engines
 
   # Header and footer text
   header_text: >
-     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+     <p>Ethereum Development Tutorial v.1.0</p>
 
-     <p>Remove all header text in <code>_config.yml</code> to disable this feature.</p>
+     <p>C-link</p>
   header_text_feature_image:
   footer_text: >
-   Powered by <a href="https://jekyllrb.com/">Jekyll</a> with <a href="https://github.com/rohanchandra/type-theme">Type Theme</a>
+   Powered by <a href="https://github.com/CAU-CLINK">C-link</a></a>
 
   # Icons
   rss: false
@@ -26,10 +26,10 @@ theme_settings:
   behance:
   bitbucket:
   dribbble:
-  facebook:
+  facebook: "CAUCLink"
   flickr:
   gitlab:
-  github: "rohanchandra/type-theme"
+  github: "CAU-CLINK/Ethereum-Development-Tutorial"
   gitter:
   google_plus:
   instagram:
@@ -40,7 +40,7 @@ theme_settings:
   stack_exchange:  # Full URL
   steam:
   tumblr:
-  twitter: "twitter"
+  twitter: 
   wordpress:
   youtube:
 
