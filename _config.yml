@@ -1,6 +1,6 @@
 # SITE CONFIGURATION
-baseurl: "/type-theme"
-url: "https://rohanchandra.github.io/"
+baseurl: ""
+url: "https://cau-clink.github.io/Ethereum-Development-Tutorial/"
 
 # THEME-SPECIFIC CONFIGURATION
 theme_settings:
