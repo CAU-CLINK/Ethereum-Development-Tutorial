@@ -1,4 +1,5 @@
 ---
+comments: true
 title: Post3
 layout: post
 ---
