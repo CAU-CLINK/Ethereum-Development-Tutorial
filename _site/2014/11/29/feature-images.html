@@ -2,8 +2,8 @@
 <html class="no-js">
   <head>
 	<meta charset="utf-8">
-	<title>Post2 | Ethereum Development Tutorial</title>
-	<meta name="description" content="Post2 준비중입니다.">
+	<title>Tutorial | Ethereum Development Tutorial</title>
+	<meta name="description" content="1. Node.js와 NPM 설치하기npm의 경우는 Node Package Manager이기 때문에 node.js를 설치하면 같이 설치된다.">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<!-- CSS -->
@@ -145,14 +145,232 @@
     <div class="content">
       <article class="feature-image">
   <header style="background-image: url('/Ethereum-Development-Tutorial/assets/img/sample_feature_img.png')">
-    <h1 class="title">Post2</h1>
+    <h1 class="title">Tutorial</h1>
     
     <p class="meta">
       November 29, 2014
       
     </p>
   </header>
-  <section class="post-content"><p>Post2 준비중입니다.</p>
+  <section class="post-content"><h1 id="1-nodejs와-npm-설치하기">1. Node.js와 NPM 설치하기</h1>
+<p>npm의 경우는 Node Package Manager이기 때문에 node.js를 설치하면 같이 설치된다.</p>
+
+<p><a href="https://nodejs.org/ko/">Node.js</a></p>
+
+<hr />
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$node</span> <span class="nt">-v</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/nodecheck.png" alt="png" /></p>
+
+<hr />
+
+<hr />
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$npm</span> <span class="nt">-v</span>
+</code></pre></div></div>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/npmcheck.png" alt="png" /></p>
+
+<hr />
+
+<h1 id="2-개발환경">2. 개발환경</h1>
+<h2 id="solidity">Solidity</h2>
+<h5 id="솔리디티는-기존에-있던-언어가-아닌-이더리움의-스마트-컨트랙트를-구현하기-위해서-만들어진-이더리움-전용-언어입니다">솔리디티는 기존에 있던 언어가 아닌 이더리움의 스마트 컨트랙트를 구현하기 위해서 만들어진 이더리움 전용 언어입니다.</h5>
+<h5 id="솔리디티는-python-c-javascript같은-널리-알려진-언어와-사용법이-유사">솔리디티는 Python, C++, Javascript같은 널리 알려진 언어와 사용법이 유사</h5>
+<h5 id="evmethereum-virtual-machine에서-구동되어-집니다">EVM(Ethereum Virtual Machine)에서 구동되어 집니다.</h5>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/solidity.png" alt="png" /></p>
+
+<h2 id="truffle">Truffle</h2>
+<h5 id="truffle은-이더리움-dapp-개발-프레임워크">Truffle은 이더리움 DApp 개발 프레임워크</h5>
+<h5 id="스마트컨트랙트solidity-프로그램-작성-컴파일-테스트-배포를-쉽게-할-수-있도록-지원하는-backend-framework이다">스마트컨트랙트(Solidity 프로그램) 작성, 컴파일, 테스트, 배포를 쉽게 할 수 있도록 지원하는 Backend Framework이다.</h5>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/truffle.png" alt="png" /></p>
+
+<h2 id="ganache">Ganache</h2>
+<h5 id="개발-목적의-메모리-내-블록체인이다">개발 목적의 메모리 내 블록체인이다.</h5>
+<h5 id="ganache는-가상의-계좌-10개를-제공하며-각-계좌별로-100-eth를-제공합니다">Ganache는 가상의 계좌 10개를 제공하며 각 계좌별로 100 ETH를 제공합니다.</h5>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/ganache.png" alt="png" /></p>
+
+<h2 id="reactjs">React.js</h2>
+<h5 id="frontend-framework이다">Frontend Framework이다.</h5>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/react.png" alt="png" /></p>
+
+<h2 id="web3js">web3.js</h2>
+<h5 id="web3js-는-ethereum-compatible-javascript-api-이다">web3.js 는 Ethereum Compatible JavaScript API 이다.</h5>
+<h5 id="web3js-는-javascript-기반으로-dapp-이나-서비스를-구현할-때-매우-유용">web3.js 는 JavaScript 기반으로 Dapp 이나 서비스를 구현할 때 매우 유용</h5>
+<h5 id="실질적으로-json-rpc-api-와-함께-ethereum-의-표준-api">실질적으로 JSON RPC API 와 함께 Ethereum 의 표준 API</h5>
+<h5 id="web3js-는-내부적으로-http-나-ipc-를-통해-json-rpc-api-를-호출하도록-되어있다">web3.js 는 내부적으로 HTTP 나 IPC 를 통해 JSON RPC API 를 호출하도록 되어있다.</h5>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/web3.png" alt="png" /></p>
+
+<h2 id="meta-mask">Meta Mask</h2>
+<h5 id="크롬-브라우저에서-dapp을-사용할-수-있게-해주는-확장-프로그램이다">크롬 브라우저에서 DApp을 사용할 수 있게 해주는 확장 프로그램이다.</h5>
+
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/metamask.png" alt="png" /></p>
+
+<h1 id="3-설치-및-시작">3. 설치 및 시작</h1>
+<p>제안하는 개발환경을 기반으로 간단한 튜토리얼을 진행</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c"># truffle 설치</span>
+
+<span class="nv">$npm</span> <span class="nb">install</span> <span class="nt">-g</span> truffle 
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/truffle_init.png" alt="png" /></p>
+
+<hr />
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+
+
+<span class="c"># 튜토리얼을 진행할 폴더를 만든다.</span>
+
+<span class="nv">$mkdir</span> ethereum_test
+
+<span class="nv">$cd</span> ethereum_test
+</code></pre></div></div>
+
+<hr />
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+
+
+</code></pre></div></div>
+
+<p><a href="https://truffleframework.com/boxes">여기에서 다양한 box를 확인할 수 있다.</a></p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># truffle unbox react을 통해서 </span>
+<span class="c"># truffle에 react가 붙어있는 상태의 프로젝트를 받을 수 있다.</span>
+
+<span class="nv">$truffle</span> unbox react
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/truffleunbox.png" alt="png" /></p>
+
+<hr />
+
+<p>폴더에 대한 설명을 간단하게 하자면</p>
+
+<ul>
+  <li><strong>contracts</strong>(폴더) : solidity로 개발된 smart contract 파일을 저장하는 폴더
+    <ul>
+      <li><strong>Migrations.sol</strong>(파일) : 개발한 smart contract 프로그램을 배포를 해야하는데, 이 파일은 배포를 위한 solidity 파일로써 삭제하면 안된다.</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<ul>
+  <li><strong>migrations</strong>(폴더) : 배포를 위한 스크립트 파일 폴더 smart contract 프로그램을 하나 개발할때마다 migration 파일도 이에 대응되서 하나씩 추가되는것을 나중에 확인할 수 있다.
+    <ul>
+      <li><strong>1_initial_migration.js</strong>(파일) : Migrations.sol을 배포하기 위한 스크립트 파일</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<ul>
+  <li><strong>test</strong>(폴더) : 개발된 smart contract를 테스트 하기 위한 폴더 해당 폴더에 테스트 케이스를 작성하고, truffle test 는 명령어를 통해 개발된 smart contract를 테스트 해 볼 수 있다.</li>
+</ul>
+
+<hr />
+
+<ul>
+  <li><strong>truffle-config.js</strong>(파일) : truffle 설정 파일입니다. 개발을 위한 host, port, network ID 등을 설정해 놓고 사용</li>
+</ul>
+
+<hr />
+
+<ul>
+  <li><strong>client/src</strong>(폴더) : react.js 폴더</li>
+</ul>
+
+<hr />
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+
+
+
+
+<span class="c"># Ganache를 설치하고 실행하면 아래와 같은 화면을 볼 수 있다.</span>
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/ganache_open.png" alt="png" /></p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c"># 우측 상단 설정을 들어가면 아래와 같이 서버의 호스트, 포트, 네트워크 id를 설정할 수 있다.</span>
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/ganache_setting.png" alt="png" /></p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+
+<span class="c"># Project에서 Ganache를 사용하기 위해서 truffle-config.js를 수정해야한다.</span>
+
+<span class="c"># Ganache 설정 화면에서 봤던  호스트, 포트, 네트워크 id를 넣어서 수정한다.</span>
+
+module.exports <span class="o">=</span> <span class="o">{</span>
+    networks: <span class="o">{</span>
+        development: <span class="o">{</span>
+            host: <span class="s2">"127.0.0.1"</span>,
+            port: 7545,
+            network_id: <span class="s2">"*"</span> // Match any network <span class="nb">id</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span><span class="p">;</span>
+
+</code></pre></div></div>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>기존  truffle-config.js
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/before_config.png" alt="png" /></p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>수정 후  truffle-config.js
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/after_config.png" alt="png" /></p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+
+
+
+
+<span class="c"># truffle compile과 migrate을 해준다.</span>
+
+<span class="nv">$truffle</span> compile
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/truffle_compile.png" alt="png" /></p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c"># migrations가 있다면 migrate가 안되므로 --reset을 붙인다.</span>
+<span class="nv">$truffle</span> migrate <span class="nt">--reset</span>
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/truffle_migrate_clear.png" alt="png" /></p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c"># 가나슈를 보면 배포과정에서 이더가 소모된 것을 확인 할 수 있다.</span>
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/truffle_migrate_ganache.png" alt="png" /></p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c"># 이러한 에러가 보인다면 가나슈를 가동시킨 상태에서 다시 명령어를 실행하면 해결가능하다.</span>
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/truffle_migrate.png" alt="png" /></p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c"># 우리가 이제 배포가 끝났기 때문에 본격적으로 웹에서 간단한 테스트를 진행하고자한다.</span>
+
+<span class="nv">$cd</span> client
+<span class="nv">$npm</span> start
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/npmstart.png" alt="png" /></p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c"># 시작부터 에러 발생</span>
+<span class="c"># mkdir ./src/contracts &amp;&amp; cp -r ../build/contracts/ ./src/contracts/</span>
+
+<span class="nv">$npm</span> start
+</code></pre></div></div>
+<p><img src="/Ethereum-Development-Tutorial/assets/tutorial/error1.png" alt="png" /></p>
 </section>
   
 
